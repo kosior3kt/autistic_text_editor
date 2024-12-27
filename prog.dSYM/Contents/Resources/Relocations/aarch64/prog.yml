@@ -1,0 +1,23 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     prog
+relocations:
+  - { offsetInCU: 0x26, offset: 0x26, size: 0x8, addend: 0x0, symName: _ds_init, symObjAddr: 0x0, symBinAddr: 0x1000031A0, symSize: 0xA0 }
+  - { offsetInCU: 0x92, offset: 0x92, size: 0x8, addend: 0x0, symName: _ds_init, symObjAddr: 0x0, symBinAddr: 0x1000031A0, symSize: 0xA0 }
+  - { offsetInCU: 0xEE, offset: 0xEE, size: 0x8, addend: 0x0, symName: _da_init, symObjAddr: 0xA0, symBinAddr: 0x100003240, symSize: 0x6C }
+  - { offsetInCU: 0x120, offset: 0x120, size: 0x8, addend: 0x0, symName: _ds_print, symObjAddr: 0x10C, symBinAddr: 0x1000032AC, symSize: 0x74 }
+  - { offsetInCU: 0x160, offset: 0x160, size: 0x8, addend: 0x0, symName: _da_print, symObjAddr: 0x180, symBinAddr: 0x100003320, symSize: 0x88 }
+  - { offsetInCU: 0x1A0, offset: 0x1A0, size: 0x8, addend: 0x0, symName: _ds_replace_character, symObjAddr: 0x208, symBinAddr: 0x1000033A8, symSize: 0xC8 }
+  - { offsetInCU: 0x1EE, offset: 0x1EE, size: 0x8, addend: 0x0, symName: _da_replace, symObjAddr: 0x2D0, symBinAddr: 0x100003470, symSize: 0x78 }
+  - { offsetInCU: 0x22E, offset: 0x22E, size: 0x8, addend: 0x0, symName: _ds_add_line, symObjAddr: 0x348, symBinAddr: 0x1000034E8, symSize: 0x20 }
+  - { offsetInCU: 0x252, offset: 0x252, size: 0x8, addend: 0x0, symName: _ds_add_char, symObjAddr: 0x368, symBinAddr: 0x100003508, symSize: 0x104 }
+  - { offsetInCU: 0x2A0, offset: 0x2A0, size: 0x8, addend: 0x0, symName: _da_push_back, symObjAddr: 0x46C, symBinAddr: 0x10000360C, symSize: 0x8C }
+  - { offsetInCU: 0x2D2, offset: 0x2D2, size: 0x8, addend: 0x0, symName: _ds_remove_char, symObjAddr: 0x4F8, symBinAddr: 0x100003698, symSize: 0xDC }
+  - { offsetInCU: 0x312, offset: 0x312, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x5D4, symBinAddr: 0x100003774, symSize: 0x398 }
+  - { offsetInCU: 0x3A3, offset: 0x3A3, size: 0x8, addend: 0x0, symName: _blink_cursor, symObjAddr: 0x96C, symBinAddr: 0x100003B0C, symSize: 0x6C }
+  - { offsetInCU: 0x3E3, offset: 0x3E3, size: 0x8, addend: 0x0, symName: _render_data_structure, symObjAddr: 0x9D8, symBinAddr: 0x100003B78, symSize: 0xF8 }
+  - { offsetInCU: 0x44E, offset: 0x44E, size: 0x8, addend: 0x0, symName: _draw_cursor, symObjAddr: 0xAD0, symBinAddr: 0x100003C70, symSize: 0x74 }
+  - { offsetInCU: 0x472, offset: 0x472, size: 0x8, addend: 0x0, symName: _col_to_coord, symObjAddr: 0xB44, symBinAddr: 0x100003CE4, symSize: 0x1C }
+  - { offsetInCU: 0x49A, offset: 0x49A, size: 0x8, addend: 0x0, symName: _row_to_coord, symObjAddr: 0xB60, symBinAddr: 0x100003D00, symSize: 0x20 }
+  - { offsetInCU: 0x4C2, offset: 0x4C2, size: 0x8, addend: 0x0, symName: _render_char, symObjAddr: 0xB80, symBinAddr: 0x100003D20, symSize: 0xC8 }
+...

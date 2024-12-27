@@ -1,0 +1,3 @@
+list of known issues:
+
+- backspace at index 0 of each line does not remove line - just moves cursor
