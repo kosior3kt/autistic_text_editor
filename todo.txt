@@ -1,3 +1,10 @@
 list of known issues:
 
-- backspace at index 0 of each line does not remove line - just moves cursor
+- add splitting lines to data structure
+- constrain moving cursor right to as much space as we have inserted
+- add moving up and down
+- fix non-alphanum characters adding space on the left
+- add serializing to files and from files
+- add shortcuts
+- add modes(?)
+

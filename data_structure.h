@@ -176,10 +176,65 @@ void ds_add_line(data_structure_t* _ds)
 	++_ds->current_number_of_lines;
 }
 
+void ds_delete_line(data_structure_t* _ds, const uint8_t _line_index)
+{
+	if(_line_index >= _ds->current_number_of_lines)
+	{
+		//TODO: this seems like a problem however
+		assert(1 == 0);
+	}
+	
+	for(int i = _line_index; i < _ds->current_number_of_lines - 1; ++i)
+	{
+		_ds->lines[i] = _ds->lines[i + 1];
+	}
+	da_init(&_ds->lines[_ds->current_number_of_lines], 
+		 _ds->lines[_ds->current_number_of_lines].max_size);
+
+	--_ds->current_number_of_lines;
+}
+
+void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
+{
+	
+	// this is used when we delete when cursor 
+	// is in first position of the line. we start counting lines from 1 tho
+	if(_line_index <= 0)
+	{
+		// shuold be unreachable
+		assert(1 == 0);
+	}
+
+	if(_line_index >= _ds->current_number_of_lines)
+	{
+		//TODO: this seems like a problem however
+		assert(1 == 0);
+	}
+
+	
+	// take all characters from this line and append them in previous one by one
+	for(int i = 0; i < _ds->lines[_line_index].current; ++i)
+	{
+		// this would be cleaner done by poping first but it 
+		// would have performance cost
+		da_push_back(&_ds->lines[_line_index - 1], 
+			   _ds->lines[_line_index].data[i]);
+	}
+
+	ds_delete_line(_ds, _line_index);
+}
+
+void ds_split_lines(data_structure_t* _ds, 
+					const uint8_t _line_index, 
+					const uint8_t _char_index)
+{
+
+}
+
 void ds_add_char(data_structure_t* _ds,
-					  const uint8_t _line_index,
-					  const uint8_t _char_index,
-					  const char _value)
+				const uint8_t _line_index,
+				const uint8_t _char_index,
+				const char _value)
 {
 	if(_ds->current_number_of_lines <= _line_index)
 	{
@@ -215,7 +270,6 @@ void ds_remove_char(data_structure_t* _ds,
 		//TODO: this is more wrong but still not fully 
 		// we shuold remove the whole line here or just early return?
 		//assert(1 == 0);
-		printf("here\n");
 		--_ds->lines[_line_index].current;
 	}
 

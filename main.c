@@ -54,7 +54,6 @@ static void draw_cursor(const cursor_ctx_t* _ctx)
 				  GREEN);
 }
 
-
 static void render_char(Font _font, const char _glyph, int _row, int _col)
 {
 	if(_glyph == '\0') return;
@@ -69,6 +68,7 @@ static void render_char(Font _font, const char _glyph, int _row, int _col)
 //TODO: is this passed as pointer or as value? insepct that in asm later
 static void render_char_buffer(Font _font, 
 							   const char _char_buf[DOC_HEIGHT * DOC_HEIGHT])
+//TODO: is this fn still used? Is it good idea to use it?
 {
 	int i = 0;
 
@@ -109,14 +109,133 @@ static void blink_cursor(const cursor_ctx_t* _ctx)
 	}
 }
 
+static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
+{
 
+	//TODO: change it all into a fucking switch
+	int key_pressed = GetKeyPressed();
+	while(key_pressed)
+	{
+		switch(key_pressed)
+		{
+			case KEY_ENTER:
+			{
+				++_ctx->col;
+				_ctx->row = 0;
 
+				//TODO: make it add after the current line instead
+				ds_add_line(_ds);
+				break;
+			}
+			case KEY_BACKSPACE:
+			{
+				if(_ctx->row > 0)
+				{
+					--_ctx->row;
+					ds_remove_char(_ds, _ctx->col, _ctx->row);
+				}
+				else if(_ctx->col > 0)
+				{
+					ds_merge_lines(_ds, _ctx->col);
+
+					--_ctx->col;
+
+					//MAYBE: wrap it into function later?
+					//  _ctx.row = ds_get_end_of_line(col_index);
+					_ctx->row = _ds->lines[_ctx->col].current;
+				}
+
+				break;
+			}
+			case KEY_LEFT:
+			{
+				if(_ctx->row > 0)
+					--_ctx->row;
+					break;
+			}
+			case KEY_RIGHT:
+			{
+				//MAYBE: wrap it into function later?
+				//  _ctx.row < ds_get_end_of_line(col_index);
+				if(_ctx->row < _ds->lines[_ctx->col].current)
+					++_ctx->row;
+				break;
+			}
+			default:
+			{
+				key_pressed = GetCharPressed();
+
+				ds_add_char(_ds, _ctx->col, 
+							_ctx->row,
+							(char)key_pressed);
+
+				++_ctx->row;
+				break;
+			}
+		}
+		key_pressed = GetKeyPressed();
+	}
+/*
+	for ( int key_pressed = GetKeyPressed(); 
+		key_pressed != 0; 
+		key_pressed = GetKeyPressed())
+	{
+		if(key_pressed == KEY_ENTER)
+		{
+			++_ctx->col;
+			_ctx->row = 0;
+			
+			//TODO: make it add after the current line instead
+			ds_add_line(_ds);
+		}
+		else if(key_pressed == KEY_BACKSPACE)
+		{
+			if(_ctx->row > 0)
+			{
+				--_ctx->row;
+				ds_remove_char(_ds, _ctx->col, _ctx->row);
+			}
+			else if(_ctx->col > 0)
+			{
+				ds_merge_lines(_ds, _ctx->col);
+
+				--_ctx->col;
+
+				//MAYBE: wrap it into function later?
+				//  _ctx.row = ds_get_end_of_line(col_index);
+				_ctx->row = _ds->lines[_ctx->col].current;
+			}
+		}
+		else if(key_pressed == KEY_LEFT)
+		{
+			if(_ctx->row > 0)
+				--_ctx->row;
+		}
+		else if(key_pressed == KEY_RIGHT)
+		{
+			//MAYBE: wrap it into function later?
+			//  _ctx.row < ds_get_end_of_line(col_index);
+			if(_ctx->row < _ds->lines[_ctx->col].current)
+				++_ctx->row;
+		}
+		else
+		{
+			key_pressed = GetCharPressed();
+
+			ds_add_char(_ds, _ctx->col, 
+						_ctx->row,
+						(char)key_pressed);
+
+			++_ctx->row;
+		}
+	}
+
+*/
+}
 
 int main(void)
 {
-
 	cursor_ctx_t cursor_ctx;
-	char buffer[DOC_HEIGHT][DOC_WIDTH];
 
 	data_structure_t ds;
 	ds_init(&ds, 20, 50);
@@ -127,95 +246,23 @@ int main(void)
 
 	Font courier;
 
-	int row_index[DOC_HEIGHT];
-	int col_index = 0;
-
-	memset(row_index, 0, DOC_HEIGHT);
-	memset(buffer, '\0', DOC_HEIGHT * DOC_WIDTH);
-
 
     InitWindow(800, 450, "god help me");
-
 	courier = LoadFont("/Users/jk/programming/c/raylib/assets/courier_new.ttf");
 
+	SetTargetFPS(60);
 
     while(!WindowShouldClose())
     {
         BeginDrawing();
+		//TODO: this is themes angle or sth
+		ClearBackground(RAYWHITE);
+
 		{
-
-			ClearBackground(RAYWHITE);
-
-			for(int key_pressed = GetKeyPressed(); key_pressed != 0; key_pressed = GetKeyPressed())
-			{
-				if(key_pressed == KEY_ENTER)
-				{
-					++col_index;
-					row_index[col_index] = 0;
-					
-					//ds
-					ds_add_line(&ds);
-				}
-				else if(key_pressed == KEY_BACKSPACE)
-				{
-					if(row_index[col_index] > 0)
-					{
-						--row_index[col_index];
-					}
-					else if(col_index > 0)
-					{
-						--col_index;
-					}
-
-					buffer[col_index][row_index[col_index]] = '\0';
-
-					// is it correct to allow it run with (0, 0)?
-					//ds
-					ds_remove_char(&ds, col_index, row_index[col_index]);
-
-				}
-				else if(key_pressed == KEY_LEFT)
-				{
-					if(row_index[col_index] != 0)
-						--row_index[col_index];
-				}
-				else if(key_pressed == KEY_RIGHT)
-				{
-					if(row_index[col_index] != 0)
-						++row_index[col_index];
-				}
-				else
-				{
-					buffer[col_index][row_index[col_index]] 
-						= (char)key_pressed;
-
-					//ds
-					ds_add_char(&ds, col_index, 
-								row_index[col_index],
-								(char)key_pressed);
-
-					++row_index[col_index];
-				}
-			}
-
-			cursor_ctx.row = row_index[col_index];
-			cursor_ctx.col = col_index;
-			
+			process_key_press(&cursor_ctx, &ds);
+			blink_cursor(&cursor_ctx);
+			render_data_structure(courier, &ds);
 		}
-
-		blink_cursor(&cursor_ctx);
-		/*
-
-		char buffer2[20 * 50];
-
-		for(int i = 3; i < 255; ++i)
-		{
-				buffer2[i] = i - 3;
-		}
-		render_char_buffer(courier, buffer2);
-		*/
-
-		render_data_structure(courier, &ds);
 
         EndDrawing();
     }
