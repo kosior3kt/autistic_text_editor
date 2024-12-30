@@ -1,2 +1,8 @@
 #!/bin/bash
-eval cc main.c $(pkg-config --libs --cflags raylib) -g -o prog
+eval cc main.c \
+	$(pkg-config --libs --cflags raylib)\
+	-Wall \
+	-Wextra \
+	-g \
+	-Wno-unused-variable \
+	-o prog

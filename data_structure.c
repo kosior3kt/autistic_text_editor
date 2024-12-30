@@ -186,7 +186,6 @@ void test6()
 	printf("should be:\na b c\nd e\nf g h i j\n");
 	ds_print(&ds);
 
-	
 	ds_merge_lines(&ds, 0);
 	printf("should be:\na b c d e\nf g h i j\n");
 	ds_print(&ds);

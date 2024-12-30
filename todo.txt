@@ -1,10 +1,7 @@
 list of known issues:
 
-- add splitting lines to data structure
-- constrain moving cursor right to as much space as we have inserted
-- add moving up and down
-- fix non-alphanum characters adding space on the left
-- add serializing to files and from files
+- add dynamic structure resizing
+- add scrolling
 - add shortcuts
-- add modes(?)
-
+- add modes (?)
+- add resizing

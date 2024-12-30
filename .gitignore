@@ -1,3 +1,5 @@
 *.dSYM
 ds
 prog
+success.txt
+test_input

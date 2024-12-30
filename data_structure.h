@@ -1,3 +1,6 @@
+#ifndef __DS__
+#define __DS__
+
 #include <memory.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -44,16 +47,20 @@ static void da_remove(dynamic_array_t*, const uint8_t);
 //not implemented
 static void da_add(dynamic_array_t*, const uint8_t, const char);
 
-void ds_init(data_structure_t*, const uint8_t, const uint8_t);
+void ds_init(data_structure_t*, const int, const int);
 void ds_print(const data_structure_t*);
+
 void ds_replace_character(data_structure_t*, const uint8_t, const uint8_t, const char);
-void ds_insert_line(data_structure_t*, const uint8_t);
+void ds_insert_line(data_structure_t*, const int);
 void ds_delete_line(data_structure_t*, const uint8_t);
 void ds_merge_lines(data_structure_t*, const uint8_t);
 void ds_insert_char(data_structure_t*, const uint8_t, const uint8_t, const char);
 void ds_push_back(data_structure_t*, const uint8_t, const char);
 void ds_remove_char(data_structure_t*, const uint8_t, const uint8_t);
 void ds_split_lines(data_structure_t*, const uint8_t, const uint8_t);
+
+void ds_read_from_file(data_structure_t*, FILE**);
+void ds_save_to_file(data_structure_t*, FILE**);
 
 // ----------- start of dynamic array
 //
@@ -211,8 +218,8 @@ static void da_remove(dynamic_array_t* _array, const uint8_t _pos)
 
 
 void ds_init(data_structure_t* _ds,
-			 const uint8_t _num_of_lines, 
-			 const uint8_t _num_of_chars)
+			 const int _num_of_lines, 
+			 const int _num_of_chars)
 {
 	//You can default this to 50 and 50 or sth
 	_ds->max_number_of_lines	 = _num_of_lines;
@@ -254,11 +261,14 @@ void ds_replace_character(data_structure_t* _ds,
 	da_replace(&_ds->lines[_line_index], _char_index, _value);
 }
 
-void ds_insert_line(data_structure_t* _ds, const uint8_t _line_index)
+void ds_insert_line(data_structure_t* _ds, const int _line_index)
 {
 	if(_ds->current_number_of_lines + 1 >= _ds->max_number_of_lines)
 	{
 		// ass (hehe) soon as we hit this we need to make this fucker dynamicaly sized
+		printf("\ncurrent numer of lines: %d, max declared lines: %d\n",
+				_ds->current_number_of_lines,
+				_ds->max_number_of_lines);
 		assert(1 == 0);
 	}
 
@@ -281,7 +291,7 @@ void ds_insert_line(data_structure_t* _ds, const uint8_t _line_index)
 	}
 
 	//TODO: fix this later
-	da_init(&_ds->lines[_line_index], 69);
+	da_init(&_ds->lines[_line_index], 5000);
 }
 
 void ds_delete_line(data_structure_t* _ds, const uint8_t _line_index)
@@ -420,14 +430,18 @@ void ds_remove_char(data_structure_t* _ds,
 	}
 	else if(_ds->lines[_line_index].current <= _char_index + 1)
 	{
+
 		//TODO: this is more wrong but still not fully 
 		// we shuold remove the whole line here or just early return?
 		//assert(1 == 0);
+		//
+		printf("\n\nhot here\n\n");
 		--_ds->lines[_line_index].current;
 	}
 
 	// make this fucker a null byte
-	_ds->lines[_line_index].data[_char_index] = '\0';
+	//_ds->lines[_line_index].data[_char_index] = '\0';
+	da_remove(&_ds->lines[_line_index], _char_index);
 }
 
 void ds_split_lines(data_structure_t* _ds, 
@@ -448,4 +462,67 @@ void ds_split_lines(data_structure_t* _ds,
 	}
 }
 
+void ds_read_from_file(data_structure_t* _ds, FILE** _file)
+{
+	//TODO: change it later
+	char buffer[256];
+	memset(buffer, (char)0, sizeof(buffer));
+
+	volatile int counter = 0;
+	while(fgets(buffer, sizeof(buffer), *_file) != NULL)
+	{
+		printf("%d: %s", counter, buffer);
+		for(int i = 0; i < sizeof(buffer); ++i)
+		{
+			if(buffer[i] == '\n') break;
+
+			//this is tab
+			if(buffer[i] == '\t')
+			{
+				for(int j = 0; j < 4; ++j)
+				{
+					da_push_back(
+						&_ds->lines[_ds->current_number_of_lines - 1],
+						' ');
+				}
+				continue;
+			}
+			da_push_back(
+				&_ds->lines[_ds->current_number_of_lines - 1],
+				buffer[i]);
+		}
+		ds_insert_line(_ds, _ds->current_number_of_lines);
+		++counter;
+	}
+}
+
+void ds_save_to_file(data_structure_t* _ds, FILE** _file)
+{
+	for(int i = 0; i < _ds->current_number_of_lines; ++i)
+	{
+		//TODO: change it later
+		char buffer[256];
+		memset(buffer, 0, sizeof(buffer));
+		for(int j = 0; j < _ds->lines[i].current; ++j)
+		{
+			buffer[j] += _ds->lines[i].data[j];
+			if(buffer[j] == '\0') 
+			{
+				buffer[j] = '\n';
+				buffer[j + 1] = '\0';
+				break;
+			}
+		}
+		const char* temp_thing = buffer;
+		//fputs(temp_thing, *_file);
+		//fwrite(buffer, sizeof(char), sizeof(buffer), *_file);
+		fprintf(*_file, "%s\n", temp_thing);
+	}
+
+}
+
+
 #undef line_t
+
+
+#endif //__DS__
