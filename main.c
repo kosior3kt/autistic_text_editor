@@ -20,6 +20,8 @@
 #define START_X		0
 #define START_Y		0
 
+//TODO: clean these macros later on
+
 
 // structures
 typedef struct
@@ -29,7 +31,6 @@ typedef struct
 
 	int font_size;
 }cursor_ctx_t;
-
 
 
 
@@ -45,7 +46,6 @@ static int col_to_coord(int _col)
 	return START_Y + _col * CHAR_WIDTH;
 }
 
-//I shouldnt do it this way really...
 static void draw_cursor(const cursor_ctx_t* _ctx)
 {
 	DrawRectangle(col_to_coord(_ctx->row),
@@ -114,81 +114,24 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 
 	//TODO: change it all into a fucking switch
 	int key_pressed = GetKeyPressed();
-	while(key_pressed)
+	if(key_pressed == 0) 
 	{
-		switch(key_pressed)
-		{
-			case KEY_ENTER:
-			{
-				++_ctx->col;
-				_ctx->row = 0;
-
-				//TODO: make it add after the current line instead
-				ds_add_line(_ds);
-				break;
-			}
-			case KEY_BACKSPACE:
-			{
-				if(_ctx->row > 0)
-				{
-					--_ctx->row;
-					ds_remove_char(_ds, _ctx->col, _ctx->row);
-				}
-				else if(_ctx->col > 0)
-				{
-					ds_merge_lines(_ds, _ctx->col);
-
-					--_ctx->col;
-
-					//MAYBE: wrap it into function later?
-					//  _ctx.row = ds_get_end_of_line(col_index);
-					_ctx->row = _ds->lines[_ctx->col].current;
-				}
-
-				break;
-			}
-			case KEY_LEFT:
-			{
-				if(_ctx->row > 0)
-					--_ctx->row;
-					break;
-			}
-			case KEY_RIGHT:
-			{
-				//MAYBE: wrap it into function later?
-				//  _ctx.row < ds_get_end_of_line(col_index);
-				if(_ctx->row < _ds->lines[_ctx->col].current)
-					++_ctx->row;
-				break;
-			}
-			default:
-			{
-				key_pressed = GetCharPressed();
-
-				ds_add_char(_ds, _ctx->col, 
-							_ctx->row,
-							(char)key_pressed);
-
-				++_ctx->row;
-				break;
-			}
-		}
-		key_pressed = GetKeyPressed();
+		WaitTime(0.01);
+		return;
 	}
-/*
-	for ( int key_pressed = GetKeyPressed(); 
-		key_pressed != 0; 
-		key_pressed = GetKeyPressed())
+
+	switch(key_pressed)
 	{
-		if(key_pressed == KEY_ENTER)
+		case KEY_ENTER: //------------------------------------------------------
 		{
+
+			ds_split_lines(_ds, _ctx->col, _ctx->row);
 			++_ctx->col;
+
 			_ctx->row = 0;
-			
-			//TODO: make it add after the current line instead
-			ds_add_line(_ds);
+			break;
 		}
-		else if(key_pressed == KEY_BACKSPACE)
+		case KEY_BACKSPACE: //--------------------------------------------------
 		{
 			if(_ctx->row > 0)
 			{
@@ -197,40 +140,69 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			}
 			else if(_ctx->col > 0)
 			{
-				ds_merge_lines(_ds, _ctx->col);
 
 				--_ctx->col;
+				ds_merge_lines(_ds, _ctx->col);
 
 				//MAYBE: wrap it into function later?
 				//  _ctx.row = ds_get_end_of_line(col_index);
 				_ctx->row = _ds->lines[_ctx->col].current;
 			}
+
+			break;
 		}
-		else if(key_pressed == KEY_LEFT)
+		case KEY_LEFT: //-------------------------------------------------------
 		{
 			if(_ctx->row > 0)
+			{
 				--_ctx->row;
+			}
+			break;
 		}
-		else if(key_pressed == KEY_RIGHT)
+		case KEY_RIGHT: //------------------------------------------------------
 		{
-			//MAYBE: wrap it into function later?
-			//  _ctx.row < ds_get_end_of_line(col_index);
 			if(_ctx->row < _ds->lines[_ctx->col].current)
+			{
 				++_ctx->row;
+			}
+			break;
 		}
-		else
+		case KEY_UP: //--------------------------------------------------------
+		{
+			if(_ctx->col > 0)
+			{
+				--_ctx->col;
+				if(_ctx->row > _ds->lines[_ctx->col].current)
+				{
+					_ctx->row = _ds->lines[_ctx->col].current;
+				}
+			}
+			break;
+		}
+		case KEY_DOWN: //------------------------------------------------------
+		{
+			if(_ctx->col < _ds->current_number_of_lines - 1)
+			{
+				++_ctx->col;
+				if(_ctx->row > _ds->lines[_ctx->col].current)
+				{
+					_ctx->row = _ds->lines[_ctx->col].current;
+				}
+			}
+			break;
+		}
+		default: //-------------------------------------------------------------
 		{
 			key_pressed = GetCharPressed();
 
-			ds_add_char(_ds, _ctx->col, 
-						_ctx->row,
-						(char)key_pressed);
+			if(key_pressed == 0) break;
+			printf("inserted: %d\n", key_pressed);
+			ds_insert_char(_ds, _ctx->col, _ctx->row, (char)key_pressed);
 
 			++_ctx->row;
+			break;
 		}
 	}
-
-*/
 }
 
 int main(void)
@@ -239,6 +211,8 @@ int main(void)
 
 	data_structure_t ds;
 	ds_init(&ds, 20, 50);
+
+	ds_insert_line(&ds, 0);
 
 	cursor_ctx.row		 = 0;
 	cursor_ctx.col		 = 0;

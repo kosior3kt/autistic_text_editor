@@ -4,9 +4,7 @@
 #include <inttypes.h>
 #include <assert.h>
 
-
-// ----------- start of dynamic array
-
+// ----------- Types
 typedef struct
 {
 	int		max_size;
@@ -14,6 +12,52 @@ typedef struct
 	char*	data;
 
 } dynamic_array_t;
+
+//UNDEFED AT THE END OF THE FILE
+#define line_t dynamic_array_t
+
+typedef struct
+{
+
+	int current_number_of_lines;
+	int max_number_of_lines;
+
+	line_t* lines;
+
+} data_structure_t;
+
+
+// ----------- File Interface
+
+//technical
+static void da_init(dynamic_array_t*, int);
+static void da_print(const dynamic_array_t*);
+
+static char da_get_at(const dynamic_array_t*, const uint8_t);
+static void da_resize(dynamic_array_t*, const uint8_t);
+static void da_replace(dynamic_array_t*, const uint8_t, const char);
+static void da_push_back(dynamic_array_t*, const char);
+static char da_pop(dynamic_array_t*);
+// shifts everything
+static void da_insert(dynamic_array_t*, const uint8_t, const char);
+static void da_remove(dynamic_array_t*, const uint8_t);
+//not implemented
+static void da_add(dynamic_array_t*, const uint8_t, const char);
+
+void ds_init(data_structure_t*, const uint8_t, const uint8_t);
+void ds_print(const data_structure_t*);
+void ds_replace_character(data_structure_t*, const uint8_t, const uint8_t, const char);
+void ds_insert_line(data_structure_t*, const uint8_t);
+void ds_delete_line(data_structure_t*, const uint8_t);
+void ds_merge_lines(data_structure_t*, const uint8_t);
+void ds_insert_char(data_structure_t*, const uint8_t, const uint8_t, const char);
+void ds_push_back(data_structure_t*, const uint8_t, const char);
+void ds_remove_char(data_structure_t*, const uint8_t, const uint8_t);
+void ds_split_lines(data_structure_t*, const uint8_t, const uint8_t);
+
+// ----------- start of dynamic array
+//
+
 
 static void da_init(dynamic_array_t* _array, int _size)
 {
@@ -36,6 +80,8 @@ static void da_push_back(dynamic_array_t* _array, const char _elem)
 {
 	if(_array->current >= _array->max_size)
 	{
+		printf("array has size: %d, and max size: %d\n so implement resizing now ;3\n", 
+		 (int)_array->current, (int)_array->max_size);
 		//TODO: resize it later
 		assert(0 == 1);
 	}
@@ -45,7 +91,7 @@ static void da_push_back(dynamic_array_t* _array, const char _elem)
 	++_array->current;
 }
 
-static void da_pop(dynamic_array_t* _array)
+static char da_pop(dynamic_array_t* _array)
 {
 	if(_array->current <= 0)
 	{
@@ -56,11 +102,13 @@ static void da_pop(dynamic_array_t* _array)
 	if(_array->current <= (_array->max_size / 4))
 	{
 		//TODO: resize it again, if we care about memory
-		assert(1 == 0);
+		//assert(1 == 0);
 	}
 
 	--_array->current;
+	char ret_val = _array->data[_array->current];
 	_array->data[_array->current] = '\0';
+	return ret_val;
 }
 
 static char da_get_at(const dynamic_array_t* _array, const uint8_t _index)
@@ -76,6 +124,10 @@ static char da_get_at(const dynamic_array_t* _array, const uint8_t _index)
 
 static void da_resize(dynamic_array_t* _array, const uint8_t _new_size)
 {
+
+	assert(1 == 0);
+	//TODO: implement resizing for this fucker. It' can't be this, since 
+	// we need to realloc more memory and take care of dangling shit
 	if(_new_size <= _array->current)
 	{
 		//TODO: handle this later
@@ -88,7 +140,7 @@ static void da_replace(dynamic_array_t* _array,
 					   const uint8_t _pos,
 					   const char _val)
 {
-	if(_pos > _array->current)
+	if(_pos > _array->current - 1)
 	{
 		//TODO: handle this later
 		assert(1 == 0);
@@ -112,20 +164,51 @@ static void da_add(dynamic_array_t* _array,
 	}
 
 	_array->data[_pos] = _val;
+	printf("===========================\n");
+}
+
+static void da_insert(dynamic_array_t* _array, 
+					  const uint8_t _pos, 
+					  const char _val)
+{
+	//TODO: check if this check is valid (indexes might be off or sth)
+	if(_pos > _array->current)
+	{
+		// this shouldn't happend 
+		assert(1 == 0);
+	}
+
+	//be careful this fucker is indexed from 0 when comes to data but from 
+	//1 when comes to _array.current
+	++_array->current;
+	for(int i = _array->current - 1; i > _pos; --i)
+	{
+		_array->data[i] = _array->data[i - 1];
+	}
+	_array->data[_pos] = _val;
+}
+
+static void da_remove(dynamic_array_t* _array, const uint8_t _pos)
+{
+	//TODO: check if this check is valid (indexes might be off or sth)
+	if(_pos > _array->current - 1)
+	{
+		// this shouldn't happend 
+		assert(1 == 0);
+	}
+
+	for(int i = _pos; i < _array->current - 1; ++i)
+	{
+		_array->data[i] = _array->data[i + 1];
+	}
+
+	//remove last element
+	_array->data[_array->current - 1] = '\0';
+	--_array->current;
 }
 
 // ----------------- start of ds for editor
 
-#define line_t dynamic_array_t
-typedef struct
-{
-
-	int current_number_of_lines;
-	int max_number_of_lines;
-
-	line_t* lines;
-
-} data_structure_t;
 
 void ds_init(data_structure_t* _ds,
 			 const uint8_t _num_of_lines, 
@@ -146,8 +229,8 @@ void ds_print(const data_structure_t* _ds)
 {
 	for(int i = 0; i < _ds->current_number_of_lines; ++i)
 	{
+		printf("line %d:\n", i);
 		da_print(&_ds->lines[i]);
-		printf("next:\n\n");
 	}
 }
 
@@ -171,16 +254,41 @@ void ds_replace_character(data_structure_t* _ds,
 	da_replace(&_ds->lines[_line_index], _char_index, _value);
 }
 
-void ds_add_line(data_structure_t* _ds)
+void ds_insert_line(data_structure_t* _ds, const uint8_t _line_index)
 {
+	if(_ds->current_number_of_lines + 1 >= _ds->max_number_of_lines)
+	{
+		// ass (hehe) soon as we hit this we need to make this fucker dynamicaly sized
+		assert(1 == 0);
+	}
+
+	if(_ds->current_number_of_lines < _line_index)
+	{
+		printf("current numer of lines: %d, requested line number: %d",
+				_ds->current_number_of_lines,
+				_line_index);
+		assert(1 == 0);
+	}
+
+	// this is on purpose here, not earlier. thats cause lines 
+	// are indexed from 1 in current_number_of_lines and from 0
+	// in data structure. Be careful here (see i = current... - 1)
 	++_ds->current_number_of_lines;
+
+	for(int i = _ds->current_number_of_lines - 1; i > _line_index; --i)
+	{
+		_ds->lines[i] = _ds->lines[i - 1];
+	}
+
+	//TODO: fix this later
+	da_init(&_ds->lines[_line_index], 69);
 }
 
 void ds_delete_line(data_structure_t* _ds, const uint8_t _line_index)
 {
-	if(_line_index >= _ds->current_number_of_lines)
+	if(_line_index > _ds->current_number_of_lines)
 	{
-		//TODO: this seems like a problem however
+		//TODO: this seems like a problem
 		assert(1 == 0);
 	}
 	
@@ -197,9 +305,8 @@ void ds_delete_line(data_structure_t* _ds, const uint8_t _line_index)
 void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
 {
 	
-	// this is used when we delete when cursor 
-	// is in first position of the line. we start counting lines from 1 tho
-	if(_line_index <= 0)
+	// we start indexing actual lines from 0, right?
+	if(_line_index < 0)
 	{
 		// shuold be unreachable
 		assert(1 == 0);
@@ -207,62 +314,108 @@ void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
 
 	if(_line_index >= _ds->current_number_of_lines)
 	{
-		//TODO: this seems like a problem however
+		//TODO: this seems like a problem 
 		assert(1 == 0);
 	}
 
-	
+
 	// take all characters from this line and append them in previous one by one
-	for(int i = 0; i < _ds->lines[_line_index].current; ++i)
+	for(int i = 0; i < _ds->lines[_line_index + 1].current; ++i)
 	{
 		// this would be cleaner done by poping first but it 
 		// would have performance cost
-		da_push_back(&_ds->lines[_line_index - 1], 
-			   _ds->lines[_line_index].data[i]);
+		da_push_back(&_ds->lines[_line_index], 
+			   _ds->lines[_line_index + 1].data[i]);
 	}
 
-	ds_delete_line(_ds, _line_index);
+	ds_delete_line(_ds, _line_index + 1);
 }
 
-void ds_split_lines(data_structure_t* _ds, 
-					const uint8_t _line_index, 
-					const uint8_t _char_index)
-{
 
-}
-
-void ds_add_char(data_structure_t* _ds,
+void ds_insert_char(data_structure_t* _ds,
 				const uint8_t _line_index,
 				const uint8_t _char_index,
 				const char _value)
 {
-	if(_ds->current_number_of_lines <= _line_index)
+	if(_line_index + 1 > _ds->current_number_of_lines)
 	{
-		//TODO: fix this later (if needs)
-		++_ds->current_number_of_lines;
+		printf("You request change in line that doesn't \
+				exist yet in this data structure\n");
+
+		printf("current amount of lines: %d, line with requested change: %d\n",
+			_ds->lines[_line_index].current + 1,
+			_line_index
+		 );
+		assert(1 == 0);
 	}
 
-	if(_ds->lines[_line_index].current <= _char_index)
+	if(_ds->lines[_line_index].current < _char_index)
 	{
-		//TODO: fix this later (if needs)
-		if(_ds->lines[_line_index].current + 1 < _char_index)
-		{
-			//TODO: idk. Thought?
-			assert(1 == 0);
-		}
-		da_push_back(&_ds->lines[_line_index], _value);
+		printf("line nr %d, has %d chars, but you requested change at index %d\n",
+			_line_index,
+			_ds->lines[_line_index].current,
+			_char_index
+		 );
+		assert(1 == 0);
 	}
 
-	da_replace(&_ds->lines[_line_index], _char_index, _value);
+	if(_ds->lines[_line_index].max_size <= _ds->lines[_line_index].current)
+	{
+		// nothing to be done here, we fucked up somewhere else
+		printf("line nr %d, has %d chars capacity but already has %d\n",
+			_line_index,
+			_ds->lines[_line_index].max_size,
+			_ds->lines[_line_index].current
+		 );
+		assert(1 == 0);
+	}
+
+	//da_insert updated amount of elelments it holds
+	da_insert(&_ds->lines[_line_index], _char_index, _value);
+}
+
+void ds_push_back(data_structure_t* _ds, 
+				  const uint8_t _line_index, 
+				  const char _value)
+{
+
+	//TODO: check if errors make sense (they were copied from ds_insert_char)
+	if(_line_index + 1 > _ds->current_number_of_lines)
+	{
+		printf("You request change in line that doesn't \
+				exist yet in this data structure\n");
+
+		printf("current amount of lines: %d, line with requested change: %d\n",
+			_ds->lines[_line_index].current + 1,
+			_line_index
+		 );
+		assert(1 == 0);
+	}
+
+
+	if(_ds->lines[_line_index].max_size <= _ds->lines[_line_index].current)
+	{
+		// nothing to be done here, we fucked up somewhere else
+		printf("line nr %d, has %d chars capacity but already has %d\n",
+			_line_index,
+			_ds->lines[_line_index].max_size,
+			_ds->lines[_line_index].current
+		 );
+		assert(1 == 0);
+	}
+
+	//da_insert updated amount of elelments it holds
+	da_push_back(&_ds->lines[_line_index], _value);
+
 }
 
 void ds_remove_char(data_structure_t* _ds, 
 				   const uint8_t _line_index, 
 				   const uint8_t _char_index)
 {
-	if(_ds->current_number_of_lines <= _line_index)
+	if(_ds->current_number_of_lines < _line_index)
 	{
-		//TODO: this isn't necesaitly wrong but it's not correct either
+		// this would mean we try to delete line that doesn't 'exist' yet
 		assert(1 == 0);
 	}
 	else if(_ds->lines[_line_index].current <= _char_index + 1)
@@ -277,6 +430,22 @@ void ds_remove_char(data_structure_t* _ds,
 	_ds->lines[_line_index].data[_char_index] = '\0';
 }
 
+void ds_split_lines(data_structure_t* _ds, 
+					const uint8_t _line_index, 
+					const uint8_t _char_index)
+{
+
+	//insert line below, equivalent of:
+	//++_ds->current_number_of_lines;
+	ds_insert_line(_ds, _line_index + 1);
+
+	
+	while(_ds->lines[_line_index].current > _char_index)
+	{
+		char temp_val = _ds->lines[_line_index].data[_char_index];
+		ds_push_back(_ds, _line_index + 1, temp_val);
+		da_remove(&_ds->lines[_line_index], _char_index);
+	}
+}
+
 #undef line_t
-
-
