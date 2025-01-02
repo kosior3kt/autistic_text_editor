@@ -5,4 +5,4 @@ eval cc main.c \
 	-Wextra \
 	-g \
 	-Wno-unused-variable \
-	-o prog
+	-o DO_NOT_RESIZE

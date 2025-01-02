@@ -71,6 +71,38 @@ void test3()
 	da_print(&da);
 }
 
+void test3_2()
+{
+	printf("=====================================\n");
+	printf("test3_2 - resizing structure:\n");
+
+	dynamic_array_t da;
+	da_init(&da, 10);
+
+	da_push_back(&da, 'a');
+	da_push_back(&da, 'b');
+	da_push_back(&da, 'c');
+	da_push_back(&da, 'e');
+	printf("should be 'a b c e' - ");
+	da_print(&da);
+
+	printf("max size: (should be 10): %d\n", da.max_size);
+
+	da_resize(&da, 20);
+	printf("max size: (should be 20): %d\n", da.max_size);
+
+	printf("should be 'a b c e' - ");
+	da_print(&da);
+
+	da_replace(&da, 3, 'd');
+	printf("should be 'a b c d' - ");
+	da_print(&da);
+
+	da_replace(&da, 0, 'g');
+	printf("should be 'g b c d' - ");
+	da_print(&da);
+}
+
 void test4()
 {
 	printf("=====================================\n");
@@ -93,8 +125,46 @@ void test4()
 	assert(ds.current_number_of_lines == 2);
 }
 
+
 void test4_2()
-{	
+{
+	printf("=====================================\n");
+	printf("test4_2 - resizing line in ds:\n");
+	data_structure_t ds;
+	ds_init(&ds, 10, 4);
+
+
+
+	ds_insert_line(&ds, 0);
+
+	ds_insert_char(&ds, 0, 0, 'a');
+	ds_insert_char(&ds, 0, 1, 'b');
+	ds_insert_char(&ds, 0, 2, 'c');
+	ds_insert_char(&ds, 0, 3, 'c');
+	ds_insert_char(&ds, 0, 4, 'c');
+	ds_insert_char(&ds, 0, 5, 'c');
+	ds_insert_char(&ds, 0, 6, 'c');
+	ds_insert_char(&ds, 0, 7, 'c');
+	ds_insert_char(&ds, 0, 8, 'c');
+	ds_insert_char(&ds, 0, 9, 'c');
+
+	ds_print(&ds);
+
+	printf("max size of line 1: %d\n", ds.lines[0].max_size);
+	printf("current size of line 1: %d\n", ds.lines[0].current);
+	ds_insert_char(&ds, 0, 10, 'c');
+
+	for(int i = 0; i < 100; ++i)
+	{
+		ds_insert_char(&ds, 0, i, 'a');
+	}
+
+	printf("max size of line 1: %d\n", ds.lines[0].max_size);
+	printf("current size of line 1: %d\n", ds.lines[0].current);
+}
+
+void test4_3()
+{
 	printf("=====================================\n");
 	printf("test4_2 - deleting lines:\n");
 
@@ -156,6 +226,52 @@ void test5()
 
 }
 
+void test5_2()
+{
+	printf("=====================================\n");
+	printf("test5_2 - resizing amount of lines:\n");
+	data_structure_t ds;
+	ds_init(&ds, 10, 10);
+
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+	ds_insert_line(&ds, 0);
+
+	printf("after resize:\n");
+	for(int i = 0; i < ds.max_number_of_lines; ++i)
+	{
+		//clean
+		printf("size of line %d: %d\n", i, ds.lines[i].max_size);
+	}
+
+
+	ds_insert_char(&ds, 0, 0, 'a');
+	printf("after first insert:\n");
+	for(int i = 0; i < ds.max_number_of_lines; ++i)
+	{
+		printf("value at first poisitno in line %d: %d\n", i, ds.lines[i].data[0]);
+	}
+	ds_insert_char(&ds, 1, 0, 'a');
+	ds_insert_char(&ds, 2, 0, 'a');
+	ds_insert_char(&ds, 3, 0, 'a');
+	ds_insert_char(&ds, 4, 0, 'a');
+	ds_insert_char(&ds, 5, 0, 'a');
+	ds_insert_char(&ds, 6, 0, 'a');
+	ds_insert_char(&ds, 7, 0, 'a');
+	ds_insert_char(&ds, 8, 0, 'a');
+	ds_insert_char(&ds, 9, 0, 'a');
+	printf("should be:\na\na\na\na\na\na\na\na\na\na\n");
+	ds_print(&ds);
+
+}
 
 void test6()
 {
@@ -247,6 +363,10 @@ int main()
 	test5();
 	test6();
 	test7();
+
+	test3_2();
+	test4_2();
+	test5_2();
 
 
 	return 0;

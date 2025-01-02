@@ -1,13 +1,13 @@
-// system stuff
-#include <stdio.h>
-#include <memory.h>
-#include <inttypes.h>
-
 // raylib
 #include "raylib.h"
 
 // my stuff
 #include "data_structure.h"
+
+// system stuff
+#include <stdio.h>
+#include <memory.h>
+#include <inttypes.h>
 
 // defines
 #define CHAR_HEIGHT	30
@@ -15,6 +15,7 @@
 
 #define START_X		0
 #define START_Y		0
+
 #define SCREEN_WIDTH  800
 #define SCREEN_HEIGHT 600
 
@@ -44,7 +45,7 @@ typedef struct
 }drawing_ctx_t;
 
 
-// -------- coordinate helper methods 
+// -------- coordinate helper methods
 //TODO: check this variables later - I have no fucking clue if they work or not
 static int row_to_coord(int _row)
 {
@@ -56,14 +57,37 @@ static int col_to_coord(int _col)
 	return START_Y + _col * CHAR_WIDTH;
 }
 
-static void draw_cursor(const cursor_ctx_t* _ctx)
+int last_col = 0;
+int last_row = 0;
+static void draw_cursor(const cursor_ctx_t* _ctx,
+						const drawing_ctx_t* _drawing)
 {
-	DrawRectangle(col_to_coord(_ctx->row),
-				  row_to_coord(_ctx->col),
-				  CHAR_WIDTH, CHAR_HEIGHT - 3, 
+
+	int local_row = _ctx->row - _drawing->row;
+	int local_col = _ctx->col - _drawing->col;
+
+	/*if(local_row > MAX_NUM_OF_CHARAS - 1)*/
+	/*{*/
+	/*	local_row = MAX_NUM_OF_CHARAS - 1;*/
+	/*}*/
+	/**/
+	/*if(local_col > MAX_NUM_OF_LINES - 1)*/
+	/*{*/
+	/*	local_col = MAX_NUM_OF_LINES - 1;*/
+	/*}*/
+
+	DrawRectangle(col_to_coord(local_row),
+				  row_to_coord(local_col),
+				  CHAR_WIDTH, CHAR_HEIGHT - 3,
 				  GREEN);
 
-	printf("row: %d, col: %d\n", _ctx->row, _ctx->col);
+	if(last_col != _ctx->col || last_row != _ctx->row)
+	{
+		last_col = _ctx->col;
+		last_row = _ctx->row;
+		printf("drawing cursor - row: %d, col %d\n", _ctx->row, _ctx->col);
+		printf("drawing cursor (normalised) - row: %d, col %d\n", local_row, local_col);
+	}
 }
 
 static void render_char(Font _font, const char _glyph, int _row, int _col)
@@ -79,18 +103,36 @@ static void render_char(Font _font, const char _glyph, int _row, int _col)
 }
 
 
-static void render_data_structure(Font _font, const data_structure_t* _data)
+static void render_data_structure(Font _font,
+								  const data_structure_t* _data,
+								  const unsigned _start_row,
+								  const unsigned _start_col)
 {
-	for(int i = 0; i < _data->current_number_of_lines; ++i)
+	unsigned row_range = _data->current_number_of_lines + _start_row;
+	if(_data->current_number_of_lines + _start_row > MAX_NUM_OF_LINES)
 	{
-		for(int j = 0; j < _data->lines[i].current; ++j)
+		row_range = MAX_NUM_OF_LINES;
+	}
+	//for(int i = _start_row; i < _data->current_number_of_lines; ++i)
+	for(int i = _start_row; i < _start_row + row_range; ++i)
+	{
+		unsigned col_range = _data->lines[i].current + _start_col;
+		if(_data->lines[i].current + _start_col > MAX_NUM_OF_CHARAS)
 		{
-			render_char(_font, _data->lines[i].data[j], i, j);
+			col_range = MAX_NUM_OF_CHARAS;
+		}
+
+		//for(int j = _start_col; j < _data->lines[i].current; ++j)
+		for(int j = _start_col; j < _start_col + col_range; ++j)
+		{
+			render_char(_font, _data->lines[i].data[j],
+						i - _start_row, j - _start_col);
 		}
 	}
 }
 
-static void blink_cursor(const cursor_ctx_t* _ctx)
+static void blink_cursor(const cursor_ctx_t* _ctx,
+						 const drawing_ctx_t* _drawing)
 {
 	// TODO: make it a fucntion that switches draw and not draw for 500ms at time
 	// then draw every tiem cursor moves
@@ -99,16 +141,16 @@ static void blink_cursor(const cursor_ctx_t* _ctx)
 
 	if(time % 1000 > 500)
 	{
-		draw_cursor(_ctx);
+		draw_cursor(_ctx, _drawing);
 	}
 }
 
 static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 {
-
+#define print_key printf("col: %d, row: %d\n",_ctx->col ,_ctx->row);
 	//TODO: change it all into a fucking switch
 	int key_pressed = GetKeyPressed();
-	if(key_pressed == 0) 
+	if(key_pressed == 0)
 	{
 		WaitTime(0.01);
 		return;
@@ -123,6 +165,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			++_ctx->col;
 
 			_ctx->row = 0;
+			print_key
 			break;
 		}
 		case KEY_BACKSPACE: //-------------------------------------------------
@@ -151,6 +194,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 				}
 			}
 
+			print_key
 			break;
 		}
 		case KEY_LEFT: //------------------------------------------------------
@@ -159,6 +203,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			{
 				--_ctx->row;
 			}
+			print_key
 			break;
 		}
 		case KEY_RIGHT: //-----------------------------------------------------
@@ -167,6 +212,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			{
 				++_ctx->row;
 			}
+			print_key
 			break;
 		}
 		case KEY_UP: //--------------------------------------------------------
@@ -179,6 +225,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 					_ctx->row = _ds->lines[_ctx->col].current;
 				}
 			}
+			print_key
 			break;
 		}
 		case KEY_DOWN: //------------------------------------------------------
@@ -191,6 +238,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 					_ctx->row = _ds->lines[_ctx->col].current;
 				}
 			}
+			print_key
 			break;
 		}
 		case KEY_EQUAL: //-----------------------------------------------------
@@ -207,6 +255,7 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 				ds_insert_char(_ds, _ctx->col, _ctx->row, ' ');
 				++_ctx->row;
 			}
+			print_key
 			break;
 		}
 		default: //------------------------------------------------------------
@@ -215,6 +264,32 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			// useful for shortcuts I guess
 			int fancy_key_pressed = key_pressed;
 			key_pressed = GetCharPressed();
+
+			if(IsKeyDown(KEY_LEFT_CONTROL))
+			{
+				printf("ctrl pressed");
+				printf("key_pressed: %d\n", key_pressed);
+				if(IsKeyDown(69))
+				{
+					_ctx->row = _ds->lines[_ctx->col].current;
+					return;
+				}
+				else if(IsKeyDown(65))
+				{
+					_ctx->row = 0;
+					return;
+				}
+				else if(IsKeyDown(85))
+				{
+					_ctx->col = 0;
+					return;
+				}
+				else if(IsKeyDown(68))
+				{
+					_ctx->col = _ds->current_number_of_lines;
+					return;
+				}
+			}
 
 			printf("fancy inserted: %d\n", fancy_key_pressed);
 
@@ -226,10 +301,33 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 			ds_insert_char(_ds, _ctx->col, _ctx->row, (char)key_pressed);
 
 			++_ctx->row;
+			print_key
 			break;
 		}
 	}
 }
+
+void normalise_drawing(const cursor_ctx_t* _cursor,
+					   drawing_ctx_t* _drawing)
+{
+	if(_cursor->row > MAX_NUM_OF_CHARAS + _drawing->row - 1)
+	{
+		_drawing->row = _cursor->row - MAX_NUM_OF_CHARAS;
+	}
+	else if(_cursor->row < _drawing->row)
+	{
+		_drawing->row = _cursor->row;
+	}
+	else if(_cursor->col > MAX_NUM_OF_LINES + _drawing->col - 1)
+	{
+		_drawing->col = _cursor->col - MAX_NUM_OF_LINES;
+	}
+	else if(_cursor->col < _drawing->col)
+	{
+		_drawing->col = _cursor->col;
+	}
+}
+
 
 int main(int argc, char** argv)
 {
@@ -266,7 +364,7 @@ int main(int argc, char** argv)
 	ds_read_from_file(&ds, &file);
 	fclose(file);
 
-    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "god help me");
+    InitWindow(SCREEN_WIDTH, SCREEN_HEIGHT, "DO_NOT_RESIZE");
 	courier = LoadFont("/Users/jk/programming/c/raylib/assets/courier_new.ttf");
 
 	SetTargetFPS(60);
@@ -277,11 +375,11 @@ int main(int argc, char** argv)
 
 		//TODO: this is themes angle or sth
 		ClearBackground(RAYWHITE);
-
 		{
 			process_key_press(&cursor_ctx, &ds);
-			blink_cursor(&cursor_ctx);
-			render_data_structure(courier, &ds);
+			normalise_drawing(&cursor_ctx, &drawing_ctx);
+			blink_cursor(&cursor_ctx, &drawing_ctx);
+			render_data_structure(courier, &ds, drawing_ctx.col, drawing_ctx.row);
 		}
 
         EndDrawing();

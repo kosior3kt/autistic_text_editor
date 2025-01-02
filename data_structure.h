@@ -36,28 +36,30 @@ typedef struct
 static void da_init(dynamic_array_t*, int);
 static void da_print(const dynamic_array_t*);
 
-static char da_get_at(const dynamic_array_t*, const uint8_t);
-static void da_resize(dynamic_array_t*, const uint8_t);
-static void da_replace(dynamic_array_t*, const uint8_t, const char);
+static char da_get_at(const dynamic_array_t*, const unsigned);
+static void da_replace(dynamic_array_t*, const unsigned, const char);
 static void da_push_back(dynamic_array_t*, const char);
 static char da_pop(dynamic_array_t*);
 // shifts everything
-static void da_insert(dynamic_array_t*, const uint8_t, const char);
-static void da_remove(dynamic_array_t*, const uint8_t);
+static void da_insert(dynamic_array_t*, const unsigned, const char);
+static void da_remove(dynamic_array_t*, const unsigned);
 //not implemented
-static void da_add(dynamic_array_t*, const uint8_t, const char);
+static void da_add(dynamic_array_t*, const unsigned , const char);
+static void da_resize(dynamic_array_t*, const unsigned);
 
 void ds_init(data_structure_t*, const int, const int);
 void ds_print(const data_structure_t*);
 
-void ds_replace_character(data_structure_t*, const uint8_t, const uint8_t, const char);
+void ds_replace_character(data_structure_t*, const unsigned, const unsigned, const char);
 void ds_insert_line(data_structure_t*, const int);
-void ds_delete_line(data_structure_t*, const uint8_t);
-void ds_merge_lines(data_structure_t*, const uint8_t);
-void ds_insert_char(data_structure_t*, const uint8_t, const uint8_t, const char);
-void ds_push_back(data_structure_t*, const uint8_t, const char);
-void ds_remove_char(data_structure_t*, const uint8_t, const uint8_t);
-void ds_split_lines(data_structure_t*, const uint8_t, const uint8_t);
+void ds_delete_line(data_structure_t*, const unsigned);
+void ds_merge_lines(data_structure_t*, const unsigned);
+void ds_insert_char(data_structure_t*, const unsigned, const unsigned, const char);
+void ds_push_back(data_structure_t*, const unsigned, const char);
+void ds_remove_char(data_structure_t*, const unsigned, const unsigned);
+void ds_split_lines(data_structure_t*, const unsigned, const unsigned);
+
+static void ds_resize(data_structure_t*, const unsigned);
 
 void ds_read_from_file(data_structure_t*, FILE**);
 void ds_save_to_file(data_structure_t*, FILE**);
@@ -90,11 +92,11 @@ static void da_push_back(dynamic_array_t* _array, const char _elem)
 		printf("array has size: %d, and max size: %d\n so implement resizing now ;3\n", 
 		 (int)_array->current, (int)_array->max_size);
 		//TODO: resize it later
-		assert(0 == 1);
+		da_resize(_array, _array->max_size * 2);
 	}
-	
+
 	_array->data[_array->current] = _elem;
-	
+
 	++_array->current;
 }
 
@@ -118,9 +120,9 @@ static char da_pop(dynamic_array_t* _array)
 	return ret_val;
 }
 
-static char da_get_at(const dynamic_array_t* _array, const uint8_t _index)
+static char da_get_at(const dynamic_array_t* _array, const unsigned _index)
 {
-	//TODO: is uint8_t enough?
+	//TODO: is unsigned enough?
 	if(_index >= _array->current)
 	{
 		//TODO: handle this later
@@ -129,22 +131,9 @@ static char da_get_at(const dynamic_array_t* _array, const uint8_t _index)
 	return _array->data[_index];
 }
 
-static void da_resize(dynamic_array_t* _array, const uint8_t _new_size)
-{
-
-	assert(1 == 0);
-	//TODO: implement resizing for this fucker. It' can't be this, since 
-	// we need to realloc more memory and take care of dangling shit
-	if(_new_size <= _array->current)
-	{
-		//TODO: handle this later
-		assert(1 == 0);
-	}
-	_array->max_size = _new_size;
-}
 
 static void da_replace(dynamic_array_t* _array,
-					   const uint8_t _pos,
+					   const unsigned _pos,
 					   const char _val)
 {
 	if(_pos > _array->current - 1)
@@ -157,7 +146,7 @@ static void da_replace(dynamic_array_t* _array,
 }
 
 static void da_add(dynamic_array_t* _array,
-				   const uint8_t _pos,
+				   const unsigned _pos,
 				   const char _val)
 {
 	assert(1 == 0);
@@ -174,18 +163,32 @@ static void da_add(dynamic_array_t* _array,
 	printf("===========================\n");
 }
 
-static void da_insert(dynamic_array_t* _array, 
-					  const uint8_t _pos, 
+static void da_resize(dynamic_array_t* _da,
+					  const unsigned _new_size)
+{
+	if(_da->max_size >= _new_size)
+	{
+		//TODO: it shuold be possible, but not now
+		assert(1 == 0);
+	}
+	int size_to_init = _new_size - _da->max_size;
+	_da->max_size = _new_size;
+	_da->data = (char*)realloc(_da->data, _new_size * sizeof(char));
+	memset(&_da->data[_da->current], '\0', size_to_init);
+}
+
+static void da_insert(dynamic_array_t* _array,
+					  const unsigned _pos,
 					  const char _val)
 {
 	//TODO: check if this check is valid (indexes might be off or sth)
 	if(_pos > _array->current)
 	{
-		// this shouldn't happend 
+		// this shouldn't happend
 		assert(1 == 0);
 	}
 
-	//be careful this fucker is indexed from 0 when comes to data but from 
+	//be careful this fucker is indexed from 0 when comes to data but from
 	//1 when comes to _array.current
 	++_array->current;
 	for(int i = _array->current - 1; i > _pos; --i)
@@ -195,12 +198,12 @@ static void da_insert(dynamic_array_t* _array,
 	_array->data[_pos] = _val;
 }
 
-static void da_remove(dynamic_array_t* _array, const uint8_t _pos)
+static void da_remove(dynamic_array_t* _array, const unsigned _pos)
 {
 	//TODO: check if this check is valid (indexes might be off or sth)
 	if(_pos > _array->current - 1)
 	{
-		// this shouldn't happend 
+		// this shouldn't happend
 		assert(1 == 0);
 	}
 
@@ -218,7 +221,7 @@ static void da_remove(dynamic_array_t* _array, const uint8_t _pos)
 
 
 void ds_init(data_structure_t* _ds,
-			 const int _num_of_lines, 
+			 const int _num_of_lines,
 			 const int _num_of_chars)
 {
 	//You can default this to 50 and 50 or sth
@@ -242,8 +245,8 @@ void ds_print(const data_structure_t* _ds)
 }
 
 void ds_replace_character(data_structure_t* _ds,
-					  const uint8_t _line_index,
-					  const uint8_t _char_index,
+					  const unsigned _line_index,
+					  const unsigned _char_index,
 					  const char _value)
 {
 	if(_ds->current_number_of_lines <= _line_index)
@@ -261,15 +264,41 @@ void ds_replace_character(data_structure_t* _ds,
 	da_replace(&_ds->lines[_line_index], _char_index, _value);
 }
 
+
+static void ds_resize(data_structure_t* _ds, const unsigned _new_size)
+{
+	if(_ds->max_number_of_lines >= _new_size)
+	{
+		//TODO: this should be doable, but idc yet
+		assert(1 == 0);
+	}
+
+	int old_size = _ds->max_number_of_lines;
+	int size_to_init = _new_size - _ds->max_number_of_lines;
+	_ds->max_number_of_lines = _new_size;
+	_ds->lines = (line_t*)realloc(_ds->lines, _new_size * sizeof(line_t));
+	for(int i = old_size - 1; i < _new_size; ++i)
+	{
+		da_init(&_ds->lines[i], 50);
+	}
+
+	printf("just resized\n");
+	for(int i = 0; i < _new_size; ++i)
+	{
+		//clean
+		printf("size of line %d: %d\n", i,_ds->lines[i].max_size);
+	}
+}
+
 void ds_insert_line(data_structure_t* _ds, const int _line_index)
 {
 	if(_ds->current_number_of_lines + 1 >= _ds->max_number_of_lines)
 	{
-		// ass (hehe) soon as we hit this we need to make this fucker dynamicaly sized
 		printf("\ncurrent numer of lines: %d, max declared lines: %d\n",
 				_ds->current_number_of_lines,
 				_ds->max_number_of_lines);
-		assert(1 == 0);
+
+		ds_resize(_ds, _ds->max_number_of_lines * 2);
 	}
 
 	if(_ds->current_number_of_lines < _line_index)
@@ -280,7 +309,7 @@ void ds_insert_line(data_structure_t* _ds, const int _line_index)
 		assert(1 == 0);
 	}
 
-	// this is on purpose here, not earlier. thats cause lines 
+	// this is on purpose here, not earlier. thats cause lines
 	// are indexed from 1 in current_number_of_lines and from 0
 	// in data structure. Be careful here (see i = current... - 1)
 	++_ds->current_number_of_lines;
@@ -290,31 +319,30 @@ void ds_insert_line(data_structure_t* _ds, const int _line_index)
 		_ds->lines[i] = _ds->lines[i - 1];
 	}
 
-	//TODO: fix this later
-	da_init(&_ds->lines[_line_index], 5000);
+	da_init(&_ds->lines[_line_index], 50);
 }
 
-void ds_delete_line(data_structure_t* _ds, const uint8_t _line_index)
+void ds_delete_line(data_structure_t* _ds, const unsigned _line_index)
 {
 	if(_line_index > _ds->current_number_of_lines)
 	{
 		//TODO: this seems like a problem
 		assert(1 == 0);
 	}
-	
+
 	for(int i = _line_index; i < _ds->current_number_of_lines - 1; ++i)
 	{
 		_ds->lines[i] = _ds->lines[i + 1];
 	}
-	da_init(&_ds->lines[_ds->current_number_of_lines], 
+	da_init(&_ds->lines[_ds->current_number_of_lines],
 		 _ds->lines[_ds->current_number_of_lines].max_size);
 
 	--_ds->current_number_of_lines;
 }
 
-void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
+void ds_merge_lines(data_structure_t* _ds, const unsigned _line_index)
 {
-	
+
 	// we start indexing actual lines from 0, right?
 	if(_line_index < 0)
 	{
@@ -324,7 +352,7 @@ void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
 
 	if(_line_index >= _ds->current_number_of_lines)
 	{
-		//TODO: this seems like a problem 
+		//TODO: this seems like a problem
 		assert(1 == 0);
 	}
 
@@ -332,9 +360,9 @@ void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
 	// take all characters from this line and append them in previous one by one
 	for(int i = 0; i < _ds->lines[_line_index + 1].current; ++i)
 	{
-		// this would be cleaner done by poping first but it 
+		// this would be cleaner done by poping first but it
 		// would have performance cost
-		da_push_back(&_ds->lines[_line_index], 
+		da_push_back(&_ds->lines[_line_index],
 			   _ds->lines[_line_index + 1].data[i]);
 	}
 
@@ -343,20 +371,21 @@ void ds_merge_lines(data_structure_t* _ds, const uint8_t _line_index)
 
 
 void ds_insert_char(data_structure_t* _ds,
-				const uint8_t _line_index,
-				const uint8_t _char_index,
+				const unsigned _line_index,
+				const unsigned _char_index,
 				const char _value)
 {
 	if(_line_index + 1 > _ds->current_number_of_lines)
 	{
 		printf("You request change in line that doesn't \
-				exist yet in this data structure\n");
+exist yet in this data structure\n");
 
 		printf("current amount of lines: %d, line with requested change: %d\n",
 			_ds->lines[_line_index].current + 1,
 			_line_index
 		 );
-		assert(1 == 0);
+		//assert(1 == 0);
+		ds_insert_line(_ds, _ds->current_number_of_lines);
 	}
 
 	if(_ds->lines[_line_index].current < _char_index)
@@ -377,15 +406,15 @@ void ds_insert_char(data_structure_t* _ds,
 			_ds->lines[_line_index].max_size,
 			_ds->lines[_line_index].current
 		 );
-		assert(1 == 0);
+		da_resize(&_ds->lines[_line_index], _ds->lines[_line_index].max_size * 2);
 	}
 
 	//da_insert updated amount of elelments it holds
 	da_insert(&_ds->lines[_line_index], _char_index, _value);
 }
 
-void ds_push_back(data_structure_t* _ds, 
-				  const uint8_t _line_index, 
+void ds_push_back(data_structure_t* _ds,
+				  const unsigned _line_index,
 				  const char _value)
 {
 
@@ -419,9 +448,9 @@ void ds_push_back(data_structure_t* _ds,
 
 }
 
-void ds_remove_char(data_structure_t* _ds, 
-				   const uint8_t _line_index, 
-				   const uint8_t _char_index)
+void ds_remove_char(data_structure_t* _ds,
+				   const unsigned _line_index,
+				   const unsigned _char_index)
 {
 	if(_ds->current_number_of_lines < _line_index)
 	{
@@ -431,7 +460,7 @@ void ds_remove_char(data_structure_t* _ds,
 	else if(_ds->lines[_line_index].current <= _char_index + 1)
 	{
 
-		//TODO: this is more wrong but still not fully 
+		//TODO: this is more wrong but still not fully
 		// we shuold remove the whole line here or just early return?
 		//assert(1 == 0);
 		//
@@ -445,16 +474,16 @@ void ds_remove_char(data_structure_t* _ds,
 	da_remove(&_ds->lines[_line_index], _char_index);
 }
 
-void ds_split_lines(data_structure_t* _ds, 
-					const uint8_t _line_index, 
-					const uint8_t _char_index)
+void ds_split_lines(data_structure_t* _ds,
+					const unsigned _line_index,
+					const unsigned _char_index)
 {
 
 	//insert line below, equivalent of:
 	//++_ds->current_number_of_lines;
 	ds_insert_line(_ds, _line_index + 1);
 
-	
+
 	while(_ds->lines[_line_index].current > _char_index)
 	{
 		char temp_val = _ds->lines[_line_index].data[_char_index];
@@ -477,7 +506,6 @@ void ds_read_from_file(data_structure_t* _ds, FILE** _file)
 		{
 			if(buffer[i] == '\n') break;
 
-			
 			//this is tab
 			if(buffer[i] == '\t')
 			{
