@@ -436,7 +436,8 @@ void ds_remove_char(data_structure_t* _ds,
 		//assert(1 == 0);
 		//
 		printf("\n\nhot here\n\n");
-		--_ds->lines[_line_index].current;
+		//--_ds->lines[_line_index].current;
+		//why the fuck was this thing even here?
 	}
 
 	// make this fucker a null byte
@@ -476,6 +477,7 @@ void ds_read_from_file(data_structure_t* _ds, FILE** _file)
 		{
 			if(buffer[i] == '\n') break;
 
+			
 			//this is tab
 			if(buffer[i] == '\t')
 			{

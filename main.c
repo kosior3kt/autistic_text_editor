@@ -15,8 +15,11 @@
 
 #define START_X		0
 #define START_Y		0
-#define SCREEN_WIDTH  1920
-#define SCREEN_HEIGHT 1080
+#define SCREEN_WIDTH  800
+#define SCREEN_HEIGHT 600
+
+#define MAX_NUM_OF_LINES  20
+#define MAX_NUM_OF_CHARAS 50
 //TODO: clean these macros later on
 
 
@@ -29,6 +32,16 @@ typedef struct
 	int font_size;
 }cursor_ctx_t;
 
+
+//TODO: think about this later. This seems crap
+typedef struct
+{
+	int row;
+	int col;
+
+	int row_size;
+	int col_size;
+}drawing_ctx_t;
 
 
 // -------- coordinate helper methods 
@@ -49,12 +62,14 @@ static void draw_cursor(const cursor_ctx_t* _ctx)
 				  row_to_coord(_ctx->col),
 				  CHAR_WIDTH, CHAR_HEIGHT - 3, 
 				  GREEN);
+
+	printf("row: %d, col: %d\n", _ctx->row, _ctx->col);
 }
 
 static void render_char(Font _font, const char _glyph, int _row, int _col)
 {
 	if(_glyph == '\0') return;
-	if(_glyph == (char)257);
+	if(_glyph == (char)'\t');// no fucking clue what I was meant to do here
 	Vector2 temp_pos;
 	temp_pos.y = row_to_coord(_row);
 	temp_pos.x = col_to_coord(_col);
@@ -64,8 +79,7 @@ static void render_char(Font _font, const char _glyph, int _row, int _col)
 }
 
 
-static void render_data_structure(Font _font, 
-								  const data_structure_t* _data)
+static void render_data_structure(Font _font, const data_structure_t* _data)
 {
 	for(int i = 0; i < _data->current_number_of_lines; ++i)
 	{
@@ -228,6 +242,13 @@ int main(int argc, char** argv)
 	cursor_ctx.row		 = 0;
 	cursor_ctx.col		 = 0;
 	cursor_ctx.font_size = 30;
+
+	drawing_ctx_t drawing_ctx;
+	drawing_ctx.row		  = 0;
+	drawing_ctx.col		  = 0;
+	drawing_ctx.row_size  = 20;
+	drawing_ctx.col_size  = 20;
+
 
 	Font courier;
 

@@ -1,4 +1,10 @@
 list of known issues:
+- steps to reproduce:
+	- filled all columns with numbers 1 thru 0 (like line numbering in vim)
+	- returned to first line, and filled it half way with 1's
+	- attempted to backspace
+- res:
+	- program is angry at me, saying that _pos is bigger than _array->current - 1
 
 - add dynamic structure resizing
 - add scrolling
