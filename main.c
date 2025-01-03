@@ -9,20 +9,23 @@
 #include <memory.h>
 #include <inttypes.h>
 
-// defines
-#define CHAR_HEIGHT	30
-#define CHAR_WIDTH	16
-
-#define START_X		0
-#define START_Y		0
-
-#define SCREEN_WIDTH  800
-#define SCREEN_HEIGHT 600
-
-#define MAX_NUM_OF_LINES  20
-#define MAX_NUM_OF_CHARAS 50
 //TODO: clean these macros later on
 
+// defines
+int CHAR_HEIGHT = 30;
+int CHAR_WIDTH	= 16;
+
+int START_X		= 0;
+int START_Y		= 0;
+
+int SCREEN_WIDTH  = 1200;
+int SCREEN_HEIGHT = 810;
+
+int MAX_NUM_OF_CHARS = 75;
+int MAX_NUM_OF_LINES = 27;
+
+//int MAX_NUM_OF_CHARS = (SCREEN_WIDTH/CHAR_WIDTH);
+//int MAX_NUM_OF_LINES = (SCREEN_HEIGHT/CHAR_HEIGHT);
 
 // structures
 typedef struct
@@ -66,16 +69,6 @@ static void draw_cursor(const cursor_ctx_t* _ctx,
 	int local_row = _ctx->row - _drawing->row;
 	int local_col = _ctx->col - _drawing->col;
 
-	/*if(local_row > MAX_NUM_OF_CHARAS - 1)*/
-	/*{*/
-	/*	local_row = MAX_NUM_OF_CHARAS - 1;*/
-	/*}*/
-	/**/
-	/*if(local_col > MAX_NUM_OF_LINES - 1)*/
-	/*{*/
-	/*	local_col = MAX_NUM_OF_LINES - 1;*/
-	/*}*/
-
 	DrawRectangle(col_to_coord(local_row),
 				  row_to_coord(local_col),
 				  CHAR_WIDTH, CHAR_HEIGHT - 3,
@@ -93,13 +86,12 @@ static void draw_cursor(const cursor_ctx_t* _ctx,
 static void render_char(Font _font, const char _glyph, int _row, int _col)
 {
 	if(_glyph == '\0') return;
-	if(_glyph == (char)'\t');// no fucking clue what I was meant to do here
 	Vector2 temp_pos;
 	temp_pos.y = row_to_coord(_row);
 	temp_pos.x = col_to_coord(_col);
 
 	//for now just ascii values as ints. lol
-	DrawTextCodepoint(_font, (int)_glyph, temp_pos, 30, RED);
+	DrawTextCodepoint(_font, (int)_glyph, temp_pos, 30, RAYWHITE);
 }
 
 
@@ -117,14 +109,14 @@ static void render_data_structure(Font _font,
 	for(int i = _start_row; i < _start_row + row_range; ++i)
 	{
 		unsigned col_range = _data->lines[i].current + _start_col;
-		if(_data->lines[i].current + _start_col > MAX_NUM_OF_CHARAS)
+		if(_data->lines[i].current + _start_col > MAX_NUM_OF_CHARS)
 		{
-			col_range = MAX_NUM_OF_CHARAS;
+			col_range = MAX_NUM_OF_CHARS;
 		}
 
-		//for(int j = _start_col; j < _data->lines[i].current; ++j)
 		for(int j = _start_col; j < _start_col + col_range; ++j)
 		{
+			if(j > _data->lines[i].current) break;
 			render_char(_font, _data->lines[i].data[j],
 						i - _start_row, j - _start_col);
 		}
@@ -310,9 +302,9 @@ static void process_key_press(cursor_ctx_t* _ctx, data_structure_t* _ds)
 void normalise_drawing(const cursor_ctx_t* _cursor,
 					   drawing_ctx_t* _drawing)
 {
-	if(_cursor->row > MAX_NUM_OF_CHARAS + _drawing->row - 1)
+	if(_cursor->row > MAX_NUM_OF_CHARS + _drawing->row - 1)
 	{
-		_drawing->row = _cursor->row - MAX_NUM_OF_CHARAS;
+		_drawing->row = _cursor->row - MAX_NUM_OF_CHARS;
 	}
 	else if(_cursor->row < _drawing->row)
 	{
@@ -329,8 +321,24 @@ void normalise_drawing(const cursor_ctx_t* _cursor,
 }
 
 
+void recalculateIfResized()
+{
+	if(IsWindowResized())
+	{
+		SCREEN_WIDTH = GetScreenWidth();
+		SCREEN_HEIGHT = GetScreenHeight();
+		printf("width: %d, height: %d\n", SCREEN_WIDTH, SCREEN_HEIGHT);
+
+		MAX_NUM_OF_CHARS = (SCREEN_WIDTH/CHAR_WIDTH);
+		MAX_NUM_OF_LINES = (SCREEN_HEIGHT/CHAR_HEIGHT);
+	}
+
+}
+
 int main(int argc, char** argv)
 {
+
+
 	cursor_ctx_t cursor_ctx;
 
 	data_structure_t ds;
@@ -361,6 +369,8 @@ int main(int argc, char** argv)
 		file = fopen("/Users/jk/Programming/C/raylib/success.txt", "r");
 	}
 
+
+	SetConfigFlags(FLAG_WINDOW_RESIZABLE);
 	ds_read_from_file(&ds, &file);
 	fclose(file);
 
@@ -374,8 +384,9 @@ int main(int argc, char** argv)
         BeginDrawing();
 
 		//TODO: this is themes angle or sth
-		ClearBackground(RAYWHITE);
+		ClearBackground(DARKPURPLE);
 		{
+			recalculateIfResized();
 			process_key_press(&cursor_ctx, &ds);
 			normalise_drawing(&cursor_ctx, &drawing_ctx);
 			blink_cursor(&cursor_ctx, &drawing_ctx);

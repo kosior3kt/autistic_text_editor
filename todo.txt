@@ -1,6 +1,4 @@
-list of known issues:
+list of things to do:
 
 - add shortcuts						-- WIP
-- add dynamic structure resizing	-- WIP
 - add modes (?)
-- add resizing
